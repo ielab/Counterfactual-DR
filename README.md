@@ -222,7 +222,7 @@ python3 run_unseen_queries.py \
 
 Evaluate the original TCT-ColBERTv2 run file:
 ```
-python -m pyserini.eval.trec_eval -c -l 2 -m ndcg_cut.10 -m recall.1000 -m map data/2019qrels-pass-new.txt \
+python -m pyserini.eval.trec_eval -l 2 -m ndcg_cut.10 -m recall.1000 -m map data/2019qrels-pass-new.txt \
 runs/TCTv2_unseen/TCTv2_dl2019.txt
 
 Results:
