@@ -230,3 +230,4 @@ map     all     0.2417
 recall_1000     all     0.5211
 ndcg_cut_10     all     0.4203
 ```
+> Note, we remove -c in trec_eval since the test queries are only a subset of queries in the qrel file.
