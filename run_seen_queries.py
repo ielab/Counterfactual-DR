@@ -64,32 +64,6 @@ def get_batch_rels(qids, batch_docids, qrel):
     return np.array(batch_rels)
 
 
-def rocchio_get_batch_prf_q_emb(emb_qs: np.ndarray = None,
-                                batch_candidates: np.ndarray = None,
-                                batch_clicks: np.ndarray = None,
-                                propensity: np.ndarray = None,
-                                beta=0.6,
-                                alpha=0.4):
-    new_emb_qs = []
-    for index in range(len(emb_qs)):
-        prf_candidates = batch_candidates[index]
-        if propensity is not None:
-            prf_candidates = prf_candidates / propensity[:, np.newaxis]
-
-        if batch_clicks is not None:
-            prf_candidates = prf_candidates[np.nonzero(batch_clicks[index])[0]]
-            if len(prf_candidates) == 0:
-                new_emb_qs.append(emb_qs[index])
-                continue
-
-        weighted_sum_doc_embs = beta * np.sum(prf_candidates, axis=0)
-        weighted_query_embs = alpha * emb_qs[index]
-        new_emb_q = np.sum(np.vstack((weighted_query_embs, weighted_sum_doc_embs)), axis=0)
-        new_emb_qs.append(new_emb_q)
-    new_emb_qs = np.array(new_emb_qs).astype('float32')
-    return new_emb_qs
-
-
 def rocchio_get_batch_prf_doc_emb(batch_candidates: np.ndarray = None,
                                   batch_clicks: np.ndarray = None,
                                   propensity: np.ndarray = None,

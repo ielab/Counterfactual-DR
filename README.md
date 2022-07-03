@@ -34,7 +34,7 @@ INDEX_PATH=~/.cache/pyserini/indexes/dindex-msmarco-passage-tct_colbert-v2-hnp-b
 ```
 We use TCT-colbert v2, DL2019 dataset as an example for the experiments. You can easily run other experiments by changing `MODEL_NAME=ANCE`, `YEAR=2020` and corresponding index path.
 
-### Logged query log experiments
+### Logged query experiments
 #### Original DR results
 The following commands will run the original TCT-ColBERTv2 method (single stage retrieval without any feedback).
 ```
@@ -175,3 +175,58 @@ recall_1000     all     0.9004
 ndcg_cut_10     all     0.7963
 ```
 The scores are very close to the perfect and unbiased setting, meaning that CoRocchio can debias users' position bias.
+
+---
+
+### Unseen query experiments
+#### Dataset Augmentation with Synthetic Query Generation
+TREC DL datasets have only a small set of judged queries, and they are unrelated to each other, 
+withholding a subset of TREC DL queries is as unseen queries is not possible. 
+Thus we adapt the docTquery-T5 method to augment the current TREC DL
+datasets with unseen, but related queries with associated relevance judgements.
+
+To do that, first download the MS MARCO passage collection file `collection.tsv` from this [link](https://msmarco.blob.core.windows.net/msmarcoranking/collection.tar.gz) and put it in the `./data` folder.
+
+Then run the following command to generate a new query and qrel file. We take an example of augmenting DL2019 dataset.
+```
+python3 data_augmentation.py \
+--collection_file ./data/collection.tsv \
+--qrel_file ./data/2019qrels-pass.txt \
+--query_file ./data/2019queries-pass.tsv \
+--query_out ./data/2019queries-pass-new.tsv \
+--qrel_out ./data/2019qerl-pass-new.txt 
+```
+These new queries are relevance are generated based on the original queries' highly relevant passages (rel > 2). 
+Then you just need to split the `2019queries-pass-new.tsv` into a train and a test subsets. We provided our generated 
+new query and qrel files in the data folder, and randomly split it into a train (80%) and test (20%) file. Note in our experiments
+we treat train queries are logged queries and test quereis as unseen queries.
+
+
+---
+#### Run unseen query experiments
+The commands of running unseen query experiments are very similar to the logged query experiments except you just need to set 
+`--train_query_path` and `--test_query_path` to the train and test query files. 
+
+We take the original TCT-ColBERTv2 experiments as an example, the other experiments are same as [logged query experiments](###logged-query-experiments)
+The following commands will run the original TCT-ColBERTv2 method (single stage retrieval without any feedback).
+```
+python3 run_unseen_queries.py \
+--model_name ${MODEL_NAME} \
+--output_path runs/${MODEL_NAME}_unseen/${MODEL_NAME}_dl${YEAR}.txt \
+--train_query_path data/${YEAR}queries-pass-new-train.tsv \
+--test_query_path data/${YEAR}queries-pass-new-test.tsv \
+--qrel_path data/${YEAR}qrels-pass-new.txt \
+--model_path ${MODEL_PATH} \
+--index_path ${INDEX_PATH}
+```
+
+Evaluate the original TCT-ColBERTv2 run file:
+```
+python -m pyserini.eval.trec_eval -c -l 2 -m ndcg_cut.10 -m recall.1000 -m map data/2019qrels-pass-new.txt \
+runs/TCTv2_unseen/TCTv2_dl2019.txt
+
+Results:
+map     all     0.2417
+recall_1000     all     0.5211
+ndcg_cut_10     all     0.4203
+```
