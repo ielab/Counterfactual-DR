@@ -207,7 +207,7 @@ we treat train queries are logged queries and test quereis as unseen queries.
 The commands of running unseen query experiments are very similar to the logged query experiments except you just need to set 
 `--train_query_path` and `--test_query_path` to the train and test query files. 
 
-We take the original TCT-ColBERTv2 experiments as an example, the other experiments are same as [logged query experiments](###logged-query-experiments)
+We take the original TCT-ColBERTv2 experiments as an example, the other experiments are same as [logged query experiments](#logged-query-experiments)
 The following commands will run the original TCT-ColBERTv2 method (single stage retrieval without any feedback).
 ```
 python3 run_unseen_queries.py \
